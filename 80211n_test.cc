@@ -10,6 +10,9 @@
 #include "ns3/olsr-module.h"
 #include "ns3/yans-wifi-helper.h"
 
+#include "ns3/netanim-module.h"
+
+
 #include <random>
 
 #include <fstream>
@@ -180,7 +183,7 @@ RoutingExperiment::Run()
          << std::endl;
     out.close();
 
-    int nWifis = 2;
+    int nWifis = 3;
 
     double TotalTime = 20.0;
     std::string rate("2048bps");
@@ -195,7 +198,7 @@ RoutingExperiment::Run()
 
     // setting up wifi phy and channel using helpers
     WifiHelper wifi;
-    wifi.SetStandard(WIFI_STANDARD_80211n);
+    wifi.SetStandard(WIFI_STANDARD_80211ac);
 
     YansWifiPhyHelper wifiPhy;
     YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default();
@@ -212,7 +215,9 @@ RoutingExperiment::Run()
 
     Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
     positionAlloc->Add(Vector(0.0, 0.0, 0.0));
-    positionAlloc->Add(Vector(150.0, 0.0, 0.0));
+    positionAlloc->Add(Vector(50.0, 0.0, 0.0));
+    positionAlloc->Add(Vector(100.0, 0.0, 0.0));
+    mobilityAdhoc.SetPositionAllocator(positionAlloc);
     mobilityAdhoc.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobilityAdhoc.Install(adhocNodes);
 
@@ -276,28 +281,10 @@ RoutingExperiment::Run()
         onoff1.SetAttribute("Remote", remoteAddress);
 
         Ptr<UniformRandomVariable> var = CreateObject<UniformRandomVariable>();
-        ApplicationContainer temp = onoff1.Install(adhocNodes.Get(i + m_nSinks));
+        ApplicationContainer temp = onoff1.Install(adhocNodes.Get(i + 2));
         temp.Start(Seconds(var->GetValue(10.0, 11.0)));
         temp.Stop(Seconds(TotalTime));
     }
-
-    std::stringstream ss;
-    ss << nWifis;
-    std::string nodes = ss.str();
-
-    std::stringstream ss4;
-    ss4 << rate;
-    std::string sRate = ss4.str();
-
-    // NS_LOG_INFO("Configure Tracing.");
-    // tr_name = tr_name + "_" + m_protocolName +"_" + nodes + "nodes_" + sNodeSpeed + "speed_" +
-    // sNodePause + "pause_" + sRate + "rate";
-
-    // AsciiTraceHelper ascii;
-    // Ptr<OutputStreamWrapper> osw = ascii.CreateFileStream(tr_name + ".tr");
-    // wifiPhy.EnableAsciiAll(osw);
-    //AsciiTraceHelper ascii;
-    //MobilityHelper::EnableAsciiAll(ascii.CreateFileStream(tr_name + ".mob"));
 
     FlowMonitorHelper flowmonHelper;
     Ptr<FlowMonitor> flowmon;
@@ -311,6 +298,8 @@ RoutingExperiment::Run()
     CheckThroughput();
 
     Simulator::Stop(Seconds(TotalTime));
+    // AnimationInterface anim("80211n.xml");
+    wifiPhy.EnablePcap(tr_name, adhocDevices);
     Simulator::Run();
 
     if (m_flowMonitor)

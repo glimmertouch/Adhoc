@@ -63,10 +63,9 @@ class RoutingExperiment
     uint32_t bytesTotal{0};      //!< Total received bytes.
     uint32_t packetsReceived{0}; //!< Total received packets.
 
-    std::string m_CSVfileName{"manet-routing.output.csv"}; //!< CSV filename.
-    int m_nSinks{1};                                      //!< Number of sink nodes.
+    std::string m_CSVfileName{"manet-routing.csv"}; //!< CSV filename.
+    int m_nSinks{10};                                      //!< Number of sink nodes.
     std::string m_protocolName{"OLSR"};                    //!< Protocol name.
-    double m_txp{16.0206};                                     //!< Tx power.
     bool m_traceMobility{false};                           //!< Enable mobility tracing.
     bool m_flowMonitor{false};                             //!< Enable FlowMonitor.
 };
@@ -116,7 +115,7 @@ RoutingExperiment::CheckThroughput()
     std::ofstream out(m_CSVfileName, std::ios::app);
 
     out << (Simulator::Now()).GetSeconds() << "," << kbs << "," << packetsReceived << ","
-        << m_nSinks << "," << m_protocolName << "," << m_txp << "" << std::endl;
+        << m_nSinks << "," << m_protocolName << "" << std::endl;
 
     out.close();
     packetsReceived = 0;
@@ -178,16 +177,15 @@ RoutingExperiment::Run()
         << "PacketsReceived,"
         << "NumberOfSinks,"
         << "RoutingProtocol,"
-        << "TransmissionPower" << std::endl;
+        << std::endl;
     out.close();
 
-    int nWifis = 2;
+    int nWifis = 50;
 
     double TotalTime = 20.0;
     std::string rate("2048bps");
-    std::string phyMode("DsssRate1Mbps");
     std::string tr_name("80211n");
-    int nodeSpeed = 1; // in m/s
+    int nodeSpeed = 20; // in m/s
     int nodePause = 0;  // in s
 
     Config::SetDefault("ns3::OnOffApplication::PacketSize", StringValue("64"));
@@ -223,8 +221,8 @@ RoutingExperiment::Run()
     int64_t streamIndex = 0; // used to get consistent mobility across scenarios   
     ObjectFactory pos;
     pos.SetTypeId("ns3::RandomRectanglePositionAllocator");
-    pos.Set("X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=100.0]"));
-    pos.Set("Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=100.0]"));
+    pos.Set("X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=70.0]"));
+    pos.Set("Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=70.0]"));
 
     Ptr<PositionAllocator> taPositionAlloc = pos.Create()->GetObject<PositionAllocator>();
     streamIndex += taPositionAlloc->AssignStreams(streamIndex);
